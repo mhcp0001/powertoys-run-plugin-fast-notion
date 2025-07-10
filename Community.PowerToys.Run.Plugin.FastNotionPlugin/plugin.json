@@ -1,0 +1,14 @@
+{
+  "ID": "81CE9B3F5B6D4C4F818FFC072C55BC8F",
+  "ActionKeyword": "fastnotionplugin",
+  "IsGlobal": false,
+  "Name": "FastNotionPlugin",
+  "Author": "hlaueriksson",
+  "Version": "0.87.0",
+  "Language": "csharp",
+  "Website": "https://github.com/hlaueriksson/Community.PowerToys.Run.Plugin.FastNotionPlugin",
+  "ExecuteFileName": "Community.PowerToys.Run.Plugin.FastNotionPlugin.dll",
+  "IcoPathDark": "Images\\fastnotionplugin.dark.png",
+  "IcoPathLight": "Images\\fastnotionplugin.light.png",
+  "DynamicLoading": false
+}
