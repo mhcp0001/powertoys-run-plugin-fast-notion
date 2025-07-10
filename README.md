@@ -1,0 +1,1 @@
+# powertoys-run-plugin-fast-notion
