@@ -52,3 +52,27 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Security: Files containing sensitive information
+# API tokens, database credentials, etc.
+**/Settings/SettingsExample.cs
+**/Settings/*Secret*.cs
+**/Settings/*Token*.cs
+**/Settings/*Config*.json
+**/Settings/*Credential*.cs
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Local configuration files
+local.json
+secrets.json
+private.json
+
+# PowerToys plugin settings with sensitive data
+**/NotionSettings.json
+**/PluginSettings.json
