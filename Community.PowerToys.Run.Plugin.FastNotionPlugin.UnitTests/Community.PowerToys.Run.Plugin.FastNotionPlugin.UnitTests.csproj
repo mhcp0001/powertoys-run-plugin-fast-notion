@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Community.PowerToys.Run.Plugin.FastNotionPlugin\Community.PowerToys.Run.Plugin.FastNotionPlugin.csproj" />
+    <ProjectReference Include="..\Community.PowerToys.Run.Plugin.NotionMemo\Community.PowerToys.Run.Plugin.NotionMemo.csproj" />
   </ItemGroup>
 
 </Project>

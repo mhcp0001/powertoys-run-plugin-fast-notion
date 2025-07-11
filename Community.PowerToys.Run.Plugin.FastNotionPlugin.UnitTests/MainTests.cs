@@ -1,8 +1,9 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Linq;
 using Wox.Plugin;
+using Community.PowerToys.Run.Plugin.NotionMemo;
 
-namespace Community.PowerToys.Run.Plugin.FastNotionPlugin.UnitTests
+namespace Community.PowerToys.Run.Plugin.NotionMemo.UnitTests
 {
     [TestClass]
     public class MainTests

@@ -1,0 +1,155 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  DOTNET_VERSION: '9.0.x'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    strategy:
+      matrix:
+        platform: [x64, ARM64]
+        configuration: [Debug, Release]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
+    
+    - name: Restore dependencies
+      run: dotnet restore NotionMemo.sln
+    
+    - name: Build
+      run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} --platform ${{ matrix.platform }} --no-restore
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts-${{ matrix.platform }}-${{ matrix.configuration }}
+        path: |
+          Community.PowerToys.Run.Plugin.NotionMemo/bin/${{ matrix.platform }}/${{ matrix.configuration }}/**
+          Community.PowerToys.Run.Plugin.FastNotionPlugin.UnitTests/bin/${{ matrix.platform }}/${{ matrix.configuration }}/**
+        retention-days: 5
+
+  test:
+    runs-on: windows-latest
+    needs: build
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts-x64-${{ matrix.configuration }}
+        path: .
+    
+    - name: Run tests
+      run: dotnet test Community.PowerToys.Run.Plugin.FastNotionPlugin.UnitTests/bin/x64/${{ matrix.configuration }}/net9.0-windows10.0.22621.0/Community.PowerToys.Run.Plugin.FastNotionPlugin.UnitTests.dll --verbosity normal --logger "trx;LogFileName=test-results.trx"
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results-${{ matrix.configuration }}
+        path: "**/TestResults/test-results.trx"
+        retention-days: 5
+    
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test Results (${{ matrix.configuration }})
+        path: "**/TestResults/test-results.trx"
+        reporter: dotnet-trx
+        fail-on-error: true
+
+  security-scan:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
+    
+    - name: Restore dependencies
+      run: dotnet restore NotionMemo.sln
+    
+    - name: Check for vulnerable packages
+      run: dotnet list package --vulnerable --include-transitive 2>&1 | tee vulnerability-report.txt
+    
+    - name: Upload vulnerability report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: vulnerability-report
+        path: vulnerability-report.txt
+        retention-days: 30
+
+  package:
+    runs-on: windows-latest
+    needs: [build, test]
+    if: github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        platform: [x64, ARM64]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifacts-${{ matrix.platform }}-Release
+        path: .
+    
+    - name: Create plugin package
+      run: |
+        $pluginDir = "NotionMemo-${{ matrix.platform }}"
+        New-Item -ItemType Directory -Path $pluginDir
+        
+        # Copy main plugin files
+        Copy-Item "Community.PowerToys.Run.Plugin.NotionMemo/bin/${{ matrix.platform }}/Release/net9.0-windows10.0.22621.0/Community.PowerToys.Run.Plugin.NotionMemo.dll" $pluginDir
+        Copy-Item "Community.PowerToys.Run.Plugin.NotionMemo/plugin.json" $pluginDir
+        
+        # Copy Images folder if exists
+        if (Test-Path "Community.PowerToys.Run.Plugin.NotionMemo/Images") {
+          Copy-Item -Recurse "Community.PowerToys.Run.Plugin.NotionMemo/Images" $pluginDir
+        }
+        
+        # Create zip package
+        Compress-Archive -Path $pluginDir -DestinationPath "NotionMemo-${{ matrix.platform }}.zip"
+      shell: pwsh
+    
+    - name: Upload plugin package
+      uses: actions/upload-artifact@v4
+      with:
+        name: NotionMemo-${{ matrix.platform }}
+        path: NotionMemo-${{ matrix.platform }}.zip
+        retention-days: 90
