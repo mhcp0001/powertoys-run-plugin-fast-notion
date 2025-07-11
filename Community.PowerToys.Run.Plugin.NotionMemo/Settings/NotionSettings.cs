@@ -4,7 +4,7 @@ using System.Security;
 using System.Text.Json.Serialization;
 using System.Linq;
 
-namespace Community.PowerToys.Run.Plugin.FastNotionPlugin.Settings
+namespace Community.PowerToys.Run.Plugin.NotionMemo.Settings
 {
     /// <summary>
     /// Notion API設定を保持するクラス

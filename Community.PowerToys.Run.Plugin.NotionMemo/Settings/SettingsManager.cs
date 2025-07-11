@@ -8,7 +8,7 @@ using ManagedCommon;
 using Wox.Plugin.Logger;
 using System.Linq;
 
-namespace Community.PowerToys.Run.Plugin.FastNotionPlugin.Settings
+namespace Community.PowerToys.Run.Plugin.NotionMemo.Settings
 {
     /// <summary>
     /// Notion設定の保存・読み込みを管理するクラス
@@ -17,7 +17,7 @@ namespace Community.PowerToys.Run.Plugin.FastNotionPlugin.Settings
     {
         private const string SettingsFileName = "NotionSettings.json";
         private const string CredentialTarget = "PowerToys.NotionPlugin.ApiToken";
-        private const string PluginName = "FastNotionPlugin";
+        private const string PluginName = "NotionMemo";
         
         private readonly string _settingsFilePath;
         private NotionSettings _settings;
