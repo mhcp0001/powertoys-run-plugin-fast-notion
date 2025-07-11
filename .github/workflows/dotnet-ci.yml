@@ -44,7 +44,6 @@ jobs:
 
   test:
     runs-on: windows-latest
-    needs: build
     
     strategy:
       matrix:
@@ -59,21 +58,21 @@ jobs:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         cache: true
     
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: build-artifacts-x64-${{ matrix.configuration }}
-        path: .
+    - name: Restore dependencies
+      run: dotnet restore NotionMemo.sln
+    
+    - name: Build for testing
+      run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-restore
     
     - name: Run tests
-      run: dotnet test Community.PowerToys.Run.Plugin.FastNotionPlugin.UnitTests/bin/x64/${{ matrix.configuration }}/net9.0-windows10.0.22621.0/Community.PowerToys.Run.Plugin.FastNotionPlugin.UnitTests.dll --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      run: dotnet test NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-build --verbosity normal --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" --results-directory TestResults
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.configuration }}
-        path: "**/TestResults/test-results.trx"
+        path: "TestResults/test-results-${{ matrix.configuration }}.trx"
         retention-days: 5
     
     - name: Publish test results
@@ -81,7 +80,7 @@ jobs:
       if: always()
       with:
         name: Test Results (${{ matrix.configuration }})
-        path: "**/TestResults/test-results.trx"
+        path: "TestResults/test-results-${{ matrix.configuration }}.trx"
         reporter: dotnet-trx
         fail-on-error: true
 
