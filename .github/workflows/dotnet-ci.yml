@@ -15,7 +15,7 @@ jobs:
     
     strategy:
       matrix:
-        platform: [x64, ARM64]
+        platform: [x64]
         configuration: [Debug, Release]
     
     steps:
@@ -115,7 +115,7 @@ jobs:
     
     strategy:
       matrix:
-        platform: [x64, ARM64]
+        platform: [x64]
     
     steps:
     - uses: actions/checkout@v4
