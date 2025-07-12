@@ -25,12 +25,13 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
     
     - name: Restore dependencies
       run: dotnet restore NotionMemo.sln
     
     - name: Build
-      run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} --platform ${{ matrix.platform }} --no-restore
+      run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} -p:Platform=${{ matrix.platform }} --no-restore
     
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -56,15 +57,16 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
     
     - name: Restore dependencies
       run: dotnet restore NotionMemo.sln
     
     - name: Build for testing
-      run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-restore
+      run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} -p:Platform=x64 --no-restore
     
     - name: Run tests
-      run: dotnet test NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-build --verbosity normal --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" --results-directory ./TestResults
+      run: dotnet test NotionMemo.sln --configuration ${{ matrix.configuration }} -p:Platform=x64 --no-build --verbosity normal --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" --results-directory ./TestResults
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -93,6 +95,7 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
     
     - name: Restore dependencies
       run: dotnet restore NotionMemo.sln
@@ -120,28 +123,61 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Download build artifacts
-      uses: actions/download-artifact@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        name: build-artifacts-${{ matrix.platform }}-Release
-        path: .
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        cache: true
+    
+    - name: Restore dependencies
+      run: dotnet restore NotionMemo.sln
+    
+    - name: Build for packaging
+      run: dotnet build NotionMemo.sln --configuration Release -p:Platform=${{ matrix.platform }} --no-restore
     
     - name: Create plugin package
       run: |
         $pluginDir = "NotionMemo-${{ matrix.platform }}"
-        New-Item -ItemType Directory -Path $pluginDir
+        New-Item -ItemType Directory -Path $pluginDir -Force
         
-        # Copy main plugin files
-        Copy-Item "Community.PowerToys.Run.Plugin.NotionMemo/bin/${{ matrix.platform }}/Release/net9.0-windows10.0.22621.0/Community.PowerToys.Run.Plugin.NotionMemo.dll" $pluginDir
-        Copy-Item "Community.PowerToys.Run.Plugin.NotionMemo/plugin.json" $pluginDir
+        # Main plugin DLL path
+        $mainDllPath = "Community.PowerToys.Run.Plugin.NotionMemo\bin\${{ matrix.platform }}\Release\net9.0-windows10.0.22621.0\Community.PowerToys.Run.Plugin.NotionMemo.dll"
         
-        # Copy Images folder if exists
-        if (Test-Path "Community.PowerToys.Run.Plugin.NotionMemo/Images") {
-          Copy-Item -Recurse "Community.PowerToys.Run.Plugin.NotionMemo/Images" $pluginDir
+        if (Test-Path $mainDllPath) {
+          Copy-Item $mainDllPath $pluginDir
+          Write-Host "✅ Copied main plugin DLL"
+        } else {
+          Write-Host "❌ Main plugin DLL not found at: $mainDllPath"
+          Write-Host "Available files in bin directory:"
+          Get-ChildItem "Community.PowerToys.Run.Plugin.NotionMemo\bin" -Recurse | Select-Object FullName
+          throw "Main plugin DLL not found"
         }
         
+        # Copy plugin.json
+        $pluginJsonPath = "Community.PowerToys.Run.Plugin.NotionMemo\plugin.json"
+        if (Test-Path $pluginJsonPath) {
+          Copy-Item $pluginJsonPath $pluginDir
+          Write-Host "✅ Copied plugin.json"
+        } else {
+          throw "plugin.json not found at: $pluginJsonPath"
+        }
+        
+        # Copy Images folder if exists
+        $imagesPath = "Community.PowerToys.Run.Plugin.NotionMemo\Images"
+        if (Test-Path $imagesPath) {
+          Copy-Item -Recurse $imagesPath $pluginDir
+          Write-Host "✅ Copied Images folder"
+        } else {
+          Write-Host "⚠️ Images folder not found (optional)"
+        }
+        
+        # Show package contents
+        Write-Host "📦 Package contents:"
+        Get-ChildItem $pluginDir -Recurse | Select-Object Name, Length
+        
         # Create zip package
-        Compress-Archive -Path $pluginDir -DestinationPath "NotionMemo-${{ matrix.platform }}.zip"
+        Compress-Archive -Path $pluginDir -DestinationPath "NotionMemo-${{ matrix.platform }}.zip" -Force
+        Write-Host "✅ Created package: NotionMemo-${{ matrix.platform }}.zip"
       shell: pwsh
     
     - name: Upload plugin package
