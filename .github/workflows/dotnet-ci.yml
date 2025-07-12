@@ -44,6 +44,7 @@ jobs:
 
   test:
     runs-on: windows-latest
+    needs: build
     
     strategy:
       matrix:
@@ -65,14 +66,14 @@ jobs:
       run: dotnet build NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-restore
     
     - name: Run tests
-      run: dotnet test NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-build --verbosity normal --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" --results-directory TestResults
+      run: dotnet test NotionMemo.sln --configuration ${{ matrix.configuration }} --platform x64 --no-build --verbosity normal --logger "trx;LogFileName=test-results-${{ matrix.configuration }}.trx" --results-directory ./TestResults
     
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.configuration }}
-        path: "TestResults/test-results-${{ matrix.configuration }}.trx"
+        path: "./TestResults/test-results-${{ matrix.configuration }}.trx"
         retention-days: 5
     
     - name: Publish test results
@@ -80,7 +81,7 @@ jobs:
       if: always()
       with:
         name: Test Results (${{ matrix.configuration }})
-        path: "TestResults/test-results-${{ matrix.configuration }}.trx"
+        path: "./TestResults/test-results-${{ matrix.configuration }}.trx"
         reporter: dotnet-trx
         fail-on-error: true
 
