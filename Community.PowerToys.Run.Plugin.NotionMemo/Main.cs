@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Threading.Tasks;
 using Wox.Plugin;
+using Wox.Plugin.Logger;
 using Community.PowerToys.Run.Plugin.NotionMemo.Settings;
 
 namespace Community.PowerToys.Run.Plugin.NotionMemo
@@ -88,7 +89,17 @@ namespace Community.PowerToys.Run.Plugin.NotionMemo
                     Action = _ =>
                     {
                         // バックグラウンドでメモ作成を実行
-                        _ = CreateMemoAsync(memoContent);
+                        Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await CreateMemoAsync(memoContent);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Exception("Failed to create memo in background", ex, GetType());
+                            }
+                        });
                         return true;
                     },
                     ContextData = memoContent,
@@ -273,14 +284,14 @@ namespace Community.PowerToys.Run.Plugin.NotionMemo
                 // ログ出力
                 if (SettingsManager.Settings.EnableLogging)
                 {
-                    Context.API.LogException($"NotionApiException in CreateMemoAsync", ex);
+                    Log.Exception($"NotionApiException in CreateMemoAsync", ex, GetType());
                 }
             }
             catch (Exception ex)
             {
                 // 予期しないエラー
                 ShowNotification("❌ メモの作成中に予期しないエラーが発生しました。");
-                Context.API.LogException($"Unexpected error in CreateMemoAsync", ex);
+                Log.Exception($"Unexpected error in CreateMemoAsync", ex, GetType());
             }
         }
 
@@ -312,12 +323,12 @@ namespace Community.PowerToys.Run.Plugin.NotionMemo
                 // TODO: Windows.UI.Notifications を使用した適切な通知実装に置き換える
                 
                 // ログにも記録
-                Context.API.LogInfo($"NotionMemo Notification: {message}");
+                Log.Info($"NotionMemo Notification: {message}", GetType());
             }
             catch (Exception ex)
             {
                 // 通知表示でエラーが発生した場合はログのみ
-                Context.API.LogException($"Failed to show notification: {message}", ex);
+                Log.Exception($"Failed to show notification: {message}", ex, GetType());
             }
         }
     }
