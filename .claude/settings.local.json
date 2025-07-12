@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(gh run list:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet build:*)",
+      "Bash(del \"E:\\workspace\\powertoys-run-plugin-fast-notion\\Community.PowerToys.Run.Plugin.NotionMemo\\Main_backup.cs\")",
+      "Bash(del \"E:\\workspace\\powertoys-run-plugin-fast-notion\\Community.PowerToys.Run.Plugin.NotionMemo\\Main_final.cs\")",
+      "Bash(rm:*)"
     ],
     "deny": []
   }

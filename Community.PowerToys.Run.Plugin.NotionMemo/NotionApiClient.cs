@@ -1,7 +1,9 @@
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Community.PowerToys.Run.Plugin.NotionMemo.Models;
 
 namespace Community.PowerToys.Run.Plugin.NotionMemo

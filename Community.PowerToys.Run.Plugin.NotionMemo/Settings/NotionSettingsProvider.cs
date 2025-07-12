@@ -2,12 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Controls;
-using PowerLauncherPluginSettings;
+using Wox.Plugin;
 using ManagedCommon;
 using Wox.Plugin.Logger;
-using Wox.Plugin;
 
-namespace Community.PowerToys.Run.Plugin.FastNotionPlugin.Settings
+namespace Community.PowerToys.Run.Plugin.NotionMemo.Settings
 {
     /// <summary>
     /// PowerToys設定画面用のプロバイダークラス
